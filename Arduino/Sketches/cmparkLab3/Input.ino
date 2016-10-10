@@ -3,8 +3,6 @@
 
 #define NUM_KEYS 5
 #define MAX_DESC_LENGTH 7
-#define NCOLS 16
-#define NROWS 2
 
 int _adcVal, _conversionValue, _checkedKey;
 int _adcValArray[NUM_KEYS] = {50, 179, 334, 526, 832};
