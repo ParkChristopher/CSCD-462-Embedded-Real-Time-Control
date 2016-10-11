@@ -6,12 +6,6 @@ int _startMinutes, _startSeconds;
 
 /*-------------------------------------------*/
 
-void initTimer(){
-  //do initialization work here
-}
-
-/*-------------------------------------------*/
-
 void setTimer(int minutes, int seconds){
   _startMinutes = minutes;
   _startSeconds = seconds;
