@@ -100,14 +100,12 @@ void handleInput(int key){
       if(getCursorLocationX() == CURSOR_START){
         if(getIsTimerRunning() == false){
           startTimer();
-          setIsTimerRunning(true);
         }
       } else if(getCursorLocationX() == CURSOR_STOP){
         stopTimer();
-        setIsTimerRunning(false);
       } else if(getCursorLocationX() == CURSOR_SET){
         _lcdState = SET_TIME;
-        drawSetTime();
+        drawSetTime(true);
       }
     }//end MAIN KEY_SELECT
   }//end MAIN State
@@ -127,12 +125,10 @@ void handleInput(int key){
 
     if(key == KEY_UP){
       isKeyHeld = true;
-      Serial.println("INSIDE KEY UP");
       
       while(isKeyHeld){
-        if(checkForKey == KEY_UP){
+        if(checkForKey() == KEY_UP){
           if(getCursorLocationX() == CURSOR_MIN){
-            Serial.println("INCREMENTING MINUTES;");
             _setTimeMinutes++;
             if(_setTimeMinutes > 99){
               _setTimeMinutes = 99;
@@ -144,8 +140,8 @@ void handleInput(int key){
             }
           }
           
-          drawSetTime();
-          delay(500);
+          drawSetTime(false);
+          delay(250);
         }else{
           isKeyHeld = false;
         }
@@ -157,9 +153,9 @@ void handleInput(int key){
       isKeyHeld = true;
 
       while(isKeyHeld){
-        if(checkForKey == KEY_DOWN){
+        if(checkForKey() == KEY_DOWN){
           if(getCursorLocationX() == CURSOR_MIN){
-            _setTimeSeconds--;
+            _setTimeMinutes--;
             if(_setTimeMinutes < 0){
               _setTimeMinutes = 0;
             }
@@ -170,8 +166,8 @@ void handleInput(int key){
             }
           }
           
-          drawSetTime();
-          delay(500);
+          drawSetTime(false);
+          delay(250);
         }else{
           isKeyHeld = false;
         }
@@ -207,19 +203,24 @@ void drawMain(){
 
 /*-------------------------------------------*/
 
-void drawSetTime(){
+void drawSetTime(bool isStateChange){
   noInterrupts();
   _lcd.setCursor(0,0);
   _lcd.print("Set Time ");
 
-  if(getStartMinutes() == 0 && getStartSeconds() == 0){
+  if(_setTimeMinutes == 0 && _setTimeSeconds == 0){
     _lcd.setCursor(0, 1);
     _lcd.print("Min=mm Sec=ss   ");
   }else{
     updateActiveTimeSetting(_setTimeMinutes, _setTimeSeconds);
-  }                          
-  _lcd.setCursor(4, 1);
-  updateCursorLocation(4, 1);
+  }
+
+  if(isStateChange){
+    _lcd.setCursor(4, 1);
+    updateCursorLocation(4, 1);
+  }else{
+    _lcd.setCursor(getCursorLocationX(), 1);
+  }
   _lcd.blink();
   interrupts();
 }
