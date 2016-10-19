@@ -80,7 +80,7 @@ void drawTimer(bool isNewTime){
       _lcd.print(_startSeconds);
       _lcd.print(":");
       _lcd.print("0");
-      _lcd.setCursor(getCursorLocationX(), 1); //Return to previous position.
+      _lcd.setCursor(getCursorLocationX(), 1);
     }
     return;
   }

@@ -228,24 +228,20 @@ void drawSetTime(bool isStateChange){
 /*-------------------------------------------*/
 
 void updateActiveTimeSetting(int minutes, int seconds){
-  //called when the user increments or decrements the timer.
-  //updates the printed values every time the value changes
-  //(So after each delayed call while the button is held,
-  //or when it's initially pressed)
   _lcd.setCursor(0,1);
   _lcd.print("Min=");
   
   if(minutes < 10){
     _lcd.print("0");
   }
-  _lcd.print(minutes); //need to add leading 0 here
+  _lcd.print(minutes);
   _lcd.print(" ");
   _lcd.print("Sec=");
   
   if(seconds < 10){
     _lcd.print("0");
   }
-  _lcd.print(seconds); //need to add leading 0 here
+  _lcd.print(seconds);
   _lcd.print("   ");
 }
 
