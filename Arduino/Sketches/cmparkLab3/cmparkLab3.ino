@@ -234,9 +234,17 @@ void updateActiveTimeSetting(int minutes, int seconds){
   //or when it's initially pressed)
   _lcd.setCursor(0,1);
   _lcd.print("Min=");
+  
+  if(minutes < 10){
+    _lcd.print("0");
+  }
   _lcd.print(minutes); //need to add leading 0 here
   _lcd.print(" ");
   _lcd.print("Sec=");
+  
+  if(seconds < 10){
+    _lcd.print("0");
+  }
   _lcd.print(seconds); //need to add leading 0 here
   _lcd.print("   ");
 }

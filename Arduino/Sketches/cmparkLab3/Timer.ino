@@ -66,8 +66,17 @@ void drawTimer(bool isNewTime){
   if(!_isRunning){
     if(isNewTime){
       _lcd.setCursor(9, 0);
+
+      if(_startMinutes < 10){
+        _lcd.print("0");  
+      }
       _lcd.print(_startMinutes);
       _lcd.print(":");
+
+      if(_startSeconds < 10){
+        _lcd.print("0");
+      }
+      
       _lcd.print(_startSeconds);
       _lcd.print(":");
       _lcd.print("0");
@@ -77,8 +86,16 @@ void drawTimer(bool isNewTime){
   }
 
   _lcd.setCursor(9, 0);
+
+  if(_min < 10){
+    _lcd.print("0");
+  }
   _lcd.print(_min);
   _lcd.print(":");
+
+  if(_sec < 10){
+    _lcd.print("0");
+  }
   _lcd.print(_sec);
   _lcd.print(":");
   _lcd.print(_tenths);
