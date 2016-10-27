@@ -26,7 +26,7 @@
 
 /*----------------------------------------------------*/
 
-unsigned volatile int _scoreArray[NUM_DISPLAYS][NUM_DIGITS];
+byte _scoreArray[NUM_DISPLAYS][NUM_DIGITS];
 
 /*----------------------------------------------------*/
 
@@ -57,22 +57,29 @@ void configureOutputPins(){
 
 /*----------------------------------------------------*/
 void setScore(unsigned int display, unsigned int score){
-  //_scoreArray[i] = parseScore(score);
+
+  // copy the score digits to score array (we must copy because array is static)
+  byte *scoreDigits = parseScore(score);
+  for(int i = 0; i < NUM_DIGITS; i ++) {
+    _scoreArray[display][i] = scoreDigits[i];
+  }
+
+
 }
 
 /*----------------------------------------------------*/
 
 void updateDisplays(){
-  static unsigned int currentDigit;
-  
+  static unsigned int currentDigit = 0;
+
   digitalWrite(BLANK_DISPLAY, HIGH);    //Blank all displays
   digitalWrite(currentDigit, LOW);      //Disable previous digit
-  //Update current digit variable
-  //Enable display strobes by setting A9 high
+  PORTA = _scoreArray[currentDigit];    //Update current digit variable
+  digitalWrite(ENABLE_STROBE, HIGH);    //Enable display strobes by setting A9 high
   //for each of the five displays
-    //set lower nibble of porta to BCD value to display.
-    //toggle the displays strobe line hight then low
-  //disable the display strobe by setting a9 low
+  //set lower nibble of porta to BCD value to display.
+  //toggle the displays strobe line hight then low
+  digitalWrite(ENABLE_STROBE, LOW);     //disable the display strobe by setting A9 low
   //set the enable bit for the new digit high (use current digit here?)
   //set the display blanking bit low (a15) this turns on all displays
 }
@@ -86,29 +93,28 @@ void updateDisplays(){
  * Parse score digits into int array.
  * @const DIGITS 7
  * @param score The score to parse.
- * @return The int array containing the parsed digits.
+ * @return The byte array containing the parsed digits.
  * Note: This method statically allocates all memory.
  */
-int* parseScore(unsigned int score){
+byte* parseScore(unsigned int score){
 
-  const int DIGITS = 7;
-  int digits[DIGITS];
+  byte digits[NUM_DIGITS];
 
   int i = 0;
   int cur = 0;
   while(score > 0) {
-    digits[DIGITS - i - 1] = score % 10;
+    digits[NUM_DIGITS - i - 1] = byte(score % 10);
     score = score / 10;
     i ++;
   }
 
   // fill remainder with zeros if score length < 7 digits
-  while(i < DIGITS) {
-    digits[DIGITS - i - 1] = 0;
+  while(i < NUM_DIGITS) {
+    digits[NUM_DIGITS - i - 1] = B0;
     i ++;
   }
   return digits;
-} 
+}
 
 /*----------------------------------------------------*/
 
@@ -117,27 +123,14 @@ int* parseScore(unsigned int score){
  * @param val unsigned int decimal {val | 0 <= val <= 9}
  * @return unsigned int binary coded decimal
  */
-unsigned int uIntToBCD(unsigned int val){
+byte uIntToBCD(unsigned int val){
 
   // check value
   if(val < 0 || val > 9) {
-    return 0;
+    return B0;
   }
 
-  unsigned int bcdValues[] = {
-      0000, // 0
-      0001, // 1
-      0010, // 2
-      0011, // 3
-      0100, // 4
-      0101, // 5
-      0110, // 6
-      0111, // 7
-      1000, // 8
-      1001, // 9
-  };
-
-  return bcdValues[val];
+  return byte(val);
 }
 
 /*----------------------------------------------------*/
