@@ -81,17 +81,63 @@ void updateDisplays(){
 
 //Note: if the score is greater than seven digits, we should
 //not return it. it will exceed the maximum digits of the display.
+
+/**
+ * Parse score digits into int array.
+ * @const DIGITS 7
+ * @param score The score to parse.
+ * @return The int array containing the parsed digits.
+ * Note: This method statically allocates all memory.
+ */
 int* parseScore(unsigned int score){
-  //break the score down into individual digits
-  //adds them to an integer array
-  //returns that array.
+
+  const int DIGITS = 7;
+  int digits[DIGITS];
+
+  int i = 0;
+  int cur = 0;
+  while(score > 0) {
+    digits[DIGITS - i - 1] = score % 10;
+    score = score / 10;
+    i ++;
+  }
+
+  // fill remainder with zeros if score length < 7 digits
+  while(i < DIGITS) {
+    digits[DIGITS - i - 1] = 0;
+    i ++;
+  }
+  return digits;
 } 
 
 /*----------------------------------------------------*/
 
+/**
+ * Convert unsigned int to binary coded decimal.
+ * @param val unsigned int decimal {val | 0 <= val <= 9}
+ * @return unsigned int binary coded decimal
+ */
 unsigned int uIntToBCD(unsigned int val){
-  int bcdVal[4] = {0,0,0,0};
-  return bcdVal;  
+
+  // check value
+  if(val < 0 || val > 9) {
+    return 0;
+  }
+
+  unsigned int bcdValues = {
+      0000, // 0
+      0001, // 1
+      0010, // 2
+      0011, // 3
+      0100, // 4
+      0101, // 5
+      0110, // 6
+      0111, // 7
+      1000, // 8
+      1001, // 9
+  };
+
+  return bcdValues[val];
 }
 
 /*----------------------------------------------------*/
