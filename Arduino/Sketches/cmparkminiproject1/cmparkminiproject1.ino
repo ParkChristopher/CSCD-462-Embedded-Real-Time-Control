@@ -124,7 +124,7 @@ unsigned int uIntToBCD(unsigned int val){
     return 0;
   }
 
-  unsigned int bcdValues = {
+  unsigned int bcdValues[] = {
       0000, // 0
       0001, // 1
       0010, // 2
