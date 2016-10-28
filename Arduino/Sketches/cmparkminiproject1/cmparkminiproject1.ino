@@ -7,18 +7,10 @@
  * @url https://github.com/ParkChristopher/CSCD-462-Embedded-Real-Time-Control
  */
 
-#define NUM_DISPLAYS 5    // Number of digits in each display
-#define NUM_DIGITS 7      // Number of displays in the machine
-//NOTE: When you set up the Interrupt the, use rising edge
-//ie. attachInterrupt(digitalPinToInterrupt(2), ISRFunction, RISING);
+#define NUM_DISPLAYS 5      // Number of digits in each display
+#define NUM_DIGITS 7        // Number of displays in the machine
 
-
-//Program flow:
-//Digits should update as fast as interrupt 2 can fire,
-//a timer should be used to update score data every 500ms.
-/*----------------------------------------------------*/
-//Output Pins
-
+// Output Pins
 #define STROBE_DISPLAY5 38
 #define ENABLE_STROBE 88    // A9
 #define BLANK_DISPLAY 82    // A15
@@ -30,15 +22,26 @@
 #define ENABLE_DIGIT_6 52
 #define ENABLE_DIGIT_7 53
 
-byte mScoreArray[NUM_DISPLAYS][NUM_DIGITS];
-uint32_t mCurrentScore;
+uint8_t mScoreArray[NUM_DISPLAYS][NUM_DIGITS];    // Score array to hold the byte values for the digits in each display.
+uint32_t mCurrentScores[NUM_DISPLAYS];            // Value of current score. Must be 32 bits, due to decimal 7 length.
 
 void setup() {
+
+  //Program flow:
+
   configureOutputPins();
+
+  //Digits should update as fast as interrupt 2 can fire,
+  //a timer should be used to update score data every 500ms.
+
+  //NOTE: When you set up the Interrupt the, use rising edge
+  //ie. attachInterrupt(digitalPinToInterrupt(2), ISRFunction, RISING);
+
+  // todo set timer interrupt to update every half second
+  // todo set display update on interrupt 2
 }
 
-void loop() {
-}
+void loop() {}
 
 /**
  * Set the pins necessary to interface with the display.
@@ -66,7 +69,7 @@ void configureOutputPins(){
 void setScore(uint8_t display, uint32_t score){
 
   // copy the score digits to score array (we must copy because array is static)
-  byte *scoreDigits = parseScore(score);
+  uint8_t *scoreDigits = parseScore(score);
   for(int i = 0; i < NUM_DIGITS; i ++) {
     mScoreArray[display][i] = scoreDigits[i];
   }
@@ -107,14 +110,14 @@ void updateDisplays(){
  * @return The byte array containing the parsed digits.
  * Note: This method statically allocates all memory.
  */
-byte* parseScore(uint32_t score){
+uint8_t* parseScore(uint32_t score){
 
-  byte digits[NUM_DIGITS];
+  uint8_t digits[NUM_DIGITS];
 
   int i = 0;
   int cur = 0;
   while(score > 0) {
-    digits[NUM_DIGITS - i - 1] = byte(score % 10);
+    digits[NUM_DIGITS - i - 1] = byte(score % 10); // byte converts parameter to uint8_t
     score = score / 10;
     i ++;
   }
@@ -133,13 +136,30 @@ byte* parseScore(uint32_t score){
  * @param digit The digit of that display to set
  * @param value The value to set the digit to
  */
-void setDisplay(byte display, byte digit, byte value){
+void setDisplay(uint8_t display, uint8_t digit, uint8_t value){
   // todo set display
 }
 
 /**
  * Interrupt service routine which is called to refresh displays.
  */
-void refreshDisplaysCallback() {
+void refreshDisplaysInterrupt() {
   // todo call setDisplay with all digits
+}
+
+/**
+ * Interrupt service routine which is called to increment the scores.
+ */
+void updateScoreInterrupt() {
+
+  bool done = false;
+  for (uint8_t i = 0; i < NUM_DISPLAYS && !done; i++) {
+
+    mCurrentScores[i] ++;
+    setScore(i, parseScore(mCurrentScores[i]));
+
+    if(mCurrentScores[i] > 8353) {
+      done = true;
+    }
+  }
 }
