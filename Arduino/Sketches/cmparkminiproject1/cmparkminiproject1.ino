@@ -11,9 +11,9 @@
 #define NUM_DIGITS 7        // Number of digits in each display
 
 // Output Pins
-#define STROBE_DISPLAY5 38
-#define ENABLE_STROBE 88    // A9
-#define BLANK_DISPLAY 82    // A15
+#define ENABLE_STROBE A9
+#define ENABLE_STROBE_5 38
+#define BLANK_DISPLAY A15
 #define ENABLE_DIGIT_1 39   // Digit enables ordered LSB to MSB
 #define ENABLE_DIGIT_2 40
 #define ENABLE_DIGIT_3 41
@@ -22,8 +22,11 @@
 #define ENABLE_DIGIT_6 52
 #define ENABLE_DIGIT_7 53
 
+const uint8_t ENABLE_DIGITS[NUM_DIGITS] = {ENABLE_DIGIT_1, ENABLE_DIGIT_2, ENABLE_DIGIT_3, ENABLE_DIGIT_4, ENABLE_DIGIT_5, ENABLE_DIGIT_6, ENABLE_DIGIT_7};
+
 volatile uint8_t mScoreArray[NUM_DISPLAYS][NUM_DIGITS];    // Score array to hold the byte values for the digits in each display.
 volatile uint32_t mCurrentScores[NUM_DISPLAYS];            // Value of current score. Must be 32 bits, due to decimal 7 length.
+uint8_t mCurrentDigit;                                     // Current digit updating on display.
 
 void setup() {
 
@@ -39,7 +42,7 @@ void setup() {
 
   // todo set timer interrupt to update every half second
   // set display update on interrupt 2
-  attachInterrupt(digitalPinToInterrupt(2), refreshDisplaysInterrupt, RISING);
+  attachInterrupt(2, refreshDisplaysInterrupt, RISING);
 }
 
 void loop() {}
@@ -50,9 +53,9 @@ void loop() {}
  */
 void configureOutputPins(){
   DDRA = B11111111;                   // PORTA
-  pinMode(STROBE_DISPLAY5,  OUTPUT);
   pinMode(BLANK_DISPLAY,    OUTPUT);
   pinMode(ENABLE_STROBE,    OUTPUT);
+  pinMode(ENABLE_STROBE_5,  OUTPUT);
   pinMode(ENABLE_DIGIT_1,   OUTPUT);
   pinMode(ENABLE_DIGIT_2,   OUTPUT);
   pinMode(ENABLE_DIGIT_3,   OUTPUT);
@@ -81,25 +84,25 @@ void setScore(uint8_t display, uint32_t score){
  * state of the score array.
  */
 void updateDisplays(){
-  static unsigned int currentDigit = 0;
 
-  digitalWrite(BLANK_DISPLAY, HIGH);    // Blank all displays
-  digitalWrite(currentDigit, LOW);      // Disable previous digit
-  currentDigit ++;                      // Update current digit variable
-//  PORTA = mScoreArray[currentDigit];    // Update current digit variable
-  digitalWrite(ENABLE_STROBE, HIGH);    // Enable display strobes by setting A9 high
-  //for each of the five displays
+  digitalWrite(BLANK_DISPLAY, HIGH);        // Blank all displays
+  digitalWrite(ENABLE_DIGITS[mCurrentDigit], LOW); // Disable previous digit
+  mCurrentDigit = mCurrentDigit >= NUM_DIGITS ? 0 : mCurrentDigit + 1; // Update current digit variable
+
+  digitalWrite(ENABLE_STROBE, HIGH);        // Enable display strobes by setting A9 high
+  digitalWrite(ENABLE_STROBE_5, HIGH);
+
   for (int i = 0; i < NUM_DISPLAYS; i++) {
-    // set lower nibble of PORTA to binary value to display.
-    PORTA = mScoreArray[i][currentDigit];
-    // toggle the displays strobe line high then low
-    // todo toggle strobe line
+    PORTA = mScoreArray[i][mCurrentDigit];  // set lower nibble of PORTA to binary value for the digit
+    digitalWrite(ENABLE_DIGITS[i], HIGH);   // toggle the displays strobe line high then low
+    digitalWrite(ENABLE_DIGITS[i], LOW);
   }
-  digitalWrite(ENABLE_STROBE, LOW);     // Disable the display strobe by setting A9 low
-  // set the enable bit for the new digit high (use current digit here?)
-  // todo set enable bit
-  // set the display blanking bit low (A15) this turns on all displays
-  digitalWrite(BLANK_DISPLAY, LOW);
+
+  digitalWrite(ENABLE_STROBE, LOW);         // Disable the display strobe by setting A9 low
+  digitalWrite(ENABLE_STROBE_5, LOW);
+
+  digitalWrite(ENABLE_DIGITS[mCurrentDigit], HIGH); // set the enable bit for the new digit high
+  digitalWrite(BLANK_DISPLAY, LOW);          // set the display blanking bit low (A15) this turns on all displays
 }
 
 /**
@@ -162,7 +165,7 @@ void updateScoreInterrupt() {
   for (uint8_t i = 0; i < NUM_DISPLAYS && !done; i++) {
 
     mCurrentScores[i] ++;
-    setScore(i, parseScore(mCurrentScores[i]));
+    setScore(i, mCurrentScores[i]);
 
     if(mCurrentScores[i] > 8353) {
       done = true;
