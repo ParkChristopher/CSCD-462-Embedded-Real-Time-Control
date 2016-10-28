@@ -30,7 +30,12 @@ uint8_t mCurrentDigit;                                     // Current digit upda
 
 void setup() {
 
+  Serial.begin(9600);
+  Serial.print("Hello World!\n");
+
   //Program flow:
+
+  mCurrentDigit = 0;
 
   configureOutputPins();
 
@@ -45,7 +50,11 @@ void setup() {
   attachInterrupt(2, refreshDisplaysInterrupt, RISING);
 }
 
-void loop() {}
+void loop() {
+
+  updateScoreInterrupt();
+  delay(1000);
+}
 
 /**
  * Set the pins necessary to interface with the display.
@@ -72,66 +81,21 @@ void configureOutputPins(){
  */
 void setScore(uint8_t display, uint32_t score){
 
-  // copy the score digits to score array (we must copy because array is static)
-  uint8_t *scoreDigits = parseScore(score);
-  for(int i = 0; i < NUM_DIGITS; i ++) {
-    mScoreArray[display][i] = scoreDigits[i];
-  }
-}
-
-/**
- * Blank scores and update them based on the current
- * state of the score array.
- */
-void updateDisplays(){
-
-  digitalWrite(BLANK_DISPLAY, HIGH);        // Blank all displays
-  digitalWrite(ENABLE_DIGITS[mCurrentDigit], LOW); // Disable previous digit
-  mCurrentDigit = mCurrentDigit >= NUM_DIGITS ? 0 : mCurrentDigit + 1; // Update current digit variable
-
-  digitalWrite(ENABLE_STROBE, HIGH);        // Enable display strobes by setting A9 high
-  digitalWrite(ENABLE_STROBE_5, HIGH);
-
-  for (int i = 0; i < NUM_DISPLAYS; i++) {
-    PORTA = mScoreArray[i][mCurrentDigit];  // set lower nibble of PORTA to binary value for the digit
-    digitalWrite(ENABLE_DIGITS[i], HIGH);   // toggle the displays strobe line high then low
-    digitalWrite(ENABLE_DIGITS[i], LOW);
-  }
-
-  digitalWrite(ENABLE_STROBE, LOW);         // Disable the display strobe by setting A9 low
-  digitalWrite(ENABLE_STROBE_5, LOW);
-
-  digitalWrite(ENABLE_DIGITS[mCurrentDigit], HIGH); // set the enable bit for the new digit high
-  digitalWrite(BLANK_DISPLAY, LOW);          // set the display blanking bit low (A15) this turns on all displays
-}
-
-/**
- * Parse score digits into uint8_t array.
- * @const DIGITS The number of digits.
- * @param score The 32 bit score to parse.
- *              Note that a 16 bit int can't hold decimal
- *              value of zeven characters.
- * @return The byte array containing the parsed digits.
- * Note: This method statically allocates all memory.
- */
-uint8_t* parseScore(uint32_t score){
-
-  uint8_t digits[NUM_DIGITS];
+  // save the score into the score array
+  mCurrentScores[display] = score;
 
   int i = 0;
-  int cur = 0;
-  while(score > 0) {
-    digits[NUM_DIGITS - i - 1] = byte(score % 10); // byte converts parameter to uint8_t
+  while(score > 0 && i < NUM_DIGITS) {
+    mScoreArray[display][NUM_DIGITS - i - 1] = score % 10;
     score = score / 10;
     i ++;
   }
 
   // fill remainder with zeros if score length < 7 digits
   while(i < NUM_DIGITS) {
-    digits[NUM_DIGITS - i - 1] = B0;
+    digits[NUM_DIGITS - i - 1] = 0;
     i ++;
   }
-  return digits;
 }
 
 /**
@@ -145,15 +109,40 @@ void setDisplay(uint8_t display, uint8_t digit, uint8_t value){
 }
 
 /**
+ * Blank scores and update them based on the current
+ * state of the score array.
+ */
+void updateDisplays(){
+
+  digitalWrite(BLANK_DISPLAY, HIGH);         // Blank all displays
+  digitalWrite(ENABLE_DIGITS[mCurrentDigit], LOW); // Disable previous digit
+  mCurrentDigit = mCurrentDigit >= NUM_DIGITS ? 0 : mCurrentDigit + 1; // Update current digit variable
+
+  digitalWrite(ENABLE_STROBE, HIGH);         // Enable display strobes by setting A9 high
+  digitalWrite(ENABLE_STROBE_5, HIGH);
+
+  for (int i = 0; i < NUM_DISPLAYS; i++) {
+
+    uint8_t digitValue = mScoreArray[i][mCurrentDigit];
+
+    PORTA = (i << 4) & digitValue;  // set display in upper nibble, and digit value in lower nibble of PORTA
+
+    digitalWrite(ENABLE_DIGITS[i], HIGH);    // toggle the displays strobe line high then low
+    digitalWrite(ENABLE_DIGITS[i], LOW);
+  }
+
+  digitalWrite(ENABLE_STROBE, LOW);          // Disable the display strobe by setting A9 low
+  digitalWrite(ENABLE_STROBE_5, LOW);
+
+  digitalWrite(ENABLE_DIGITS[mCurrentDigit], HIGH); // set the enable bit for the new digit high
+  digitalWrite(BLANK_DISPLAY, LOW);          // set the display blanking bit low (A15) this turns on all displays
+}
+
+/**
  * Interrupt service routine which is called to refresh displays.
  */
 void refreshDisplaysInterrupt() {
-
-  for(uint8_t display = 0; display < NUM_DISPLAYS; display ++) {
-    for(uint8_t digit = 0; digit < NUM_DIGITS; digit ++) {
-      setDisplay(display, digit, mScoreArray[display][digit]);
-    }
-  }
+  updateDisplays();
 }
 
 /**
