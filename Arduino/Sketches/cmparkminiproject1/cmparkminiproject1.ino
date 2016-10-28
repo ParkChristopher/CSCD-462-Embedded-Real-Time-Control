@@ -1,8 +1,8 @@
 //Chris Park
 //Mini Project 1
 
-#define NUM_DISPLAYS 5
-#define NUM_DIGITS 7
+#define NUM_DISPLAYS 5    // Number of digits in each display
+#define NUM_DIGITS 7      // Number of displays in the machine
 //NOTE: When you set up the Interrupt the, use rising edge
 //ie. attachInterrupt(digitalPinToInterrupt(2), ISRFunction, RISING);
 
@@ -42,7 +42,7 @@ void loop() {
 /*----------------------------------------------------*/
 
 void configureOutputPins(){
-  DDRA = B11111111;                   //PORTA
+  DDRA = B11111111;                   // PORTA
   pinMode(STROBE_DISPLAY5,  OUTPUT);
   pinMode(BLANK_DISPLAY,    OUTPUT);
   pinMode(ENABLE_STROBE,    OUTPUT);
@@ -78,9 +78,9 @@ void updateDisplays(){
 //  digitalWrite(ENABLE_STROBE, HIGH);    // Enable display strobes by setting A9 high
   //for each of the five displays
   for (int i = 0; i < NUM_DISPLAYS; i++) {
-    //set lower nibble of porta to BCD value to display.
+    // set lower nibble of PORTA to binary value to display.
     PORTA = _scoreArray[i][currentDigit];
-    //toggle the displays strobe line high then low
+    // toggle the displays strobe line high then low
     digitalWrite(ENABLE_STROBE, HIGH);
     digitalWrite(ENABLE_STROBE, LOW);
   }
@@ -97,8 +97,8 @@ void updateDisplays(){
 //not return it. it will exceed the maximum digits of the display.
 
 /**
- * Parse score digits into int array.
- * @const DIGITS 7
+ * Parse score digits into uint8_t array.
+ * @const DIGITS The number of digits
  * @param score The score to parse.
  * @return The byte array containing the parsed digits.
  * Note: This method statically allocates all memory.
@@ -142,6 +142,21 @@ byte uIntToBCD(unsigned int val){
 
 /*----------------------------------------------------*/
 
-void setDisplay(){}
+/**
+ * Set display digit.
+ * @param display The display to set the score on
+ * @param digit The digit of that display to set
+ * @param value The value to set the digit to
+ */
+void setDisplay(byte display, byte digit, byte value){
+  // todo set display
+}
 
 /*----------------------------------------------------*/
+
+/**
+ * Interrupt service routine which is called to refresh displays.
+ */
+void refreshDisplaysCallback() {
+  // todo call setDisplay with all digits
+}
