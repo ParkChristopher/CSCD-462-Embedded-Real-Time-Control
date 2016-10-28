@@ -1,5 +1,11 @@
-//Chris Park
-//Mini Project 1
+
+/**
+ * @author Chris Park
+ * @author Bruce Emehiser
+ * @title Score Display
+ * @date 2016 10 28
+ * @url https://github.com/ParkChristopher/CSCD-462-Embedded-Real-Time-Control
+ */
 
 #define NUM_DISPLAYS 5    // Number of digits in each display
 #define NUM_DIGITS 7      // Number of displays in the machine
@@ -14,9 +20,9 @@
 //Output Pins
 
 #define STROBE_DISPLAY5 38
-#define ENABLE_STROBE 88    //A9
-#define BLANK_DISPLAY 82    //A15
-#define ENABLE_DIGIT_1 39   //Digit enables ordered LSB to MSB
+#define ENABLE_STROBE 88    // A9
+#define BLANK_DISPLAY 82    // A15
+#define ENABLE_DIGIT_1 39   // Digit enables ordered LSB to MSB
 #define ENABLE_DIGIT_2 40
 #define ENABLE_DIGIT_3 41
 #define ENABLE_DIGIT_4 50
@@ -24,23 +30,20 @@
 #define ENABLE_DIGIT_6 52
 #define ENABLE_DIGIT_7 53
 
-/*----------------------------------------------------*/
-
-byte _scoreArray[NUM_DISPLAYS][NUM_DIGITS];
-
-/*----------------------------------------------------*/
+byte mScoreArray[NUM_DISPLAYS][NUM_DIGITS];
+uint32_t mCurrentScore;
 
 void setup() {
   configureOutputPins();
 }
 
-/*----------------------------------------------------*/
-
 void loop() {
 }
 
-/*----------------------------------------------------*/
-
+/**
+ * Set the pins necessary to interface with the display.
+ * Note: This method must be called before any other methods.
+ */
 void configureOutputPins(){
   DDRA = B11111111;                   // PORTA
   pinMode(STROBE_DISPLAY5,  OUTPUT);
@@ -55,55 +58,56 @@ void configureOutputPins(){
   pinMode(ENABLE_DIGIT_7,   OUTPUT);
 }
 
-/*----------------------------------------------------*/
-void setScore(unsigned int display, unsigned int score){
+/**
+ * Set the score to display on a display.
+ * @param display The display on which to set the score.
+ * @param score The score to set on the display.
+ */
+void setScore(uint8_t display, uint32_t score){
 
   // copy the score digits to score array (we must copy because array is static)
   byte *scoreDigits = parseScore(score);
   for(int i = 0; i < NUM_DIGITS; i ++) {
-    _scoreArray[display][i] = scoreDigits[i];
+    mScoreArray[display][i] = scoreDigits[i];
   }
-
-
 }
 
-/*----------------------------------------------------*/
-
+/**
+ * Blank scores and update them based on the current
+ * state of the score array.
+ */
 void updateDisplays(){
   static unsigned int currentDigit = 0;
 
   digitalWrite(BLANK_DISPLAY, HIGH);    // Blank all displays
   digitalWrite(currentDigit, LOW);      // Disable previous digit
-  PORTA = _scoreArray[currentDigit];    // Update current digit variable
-//  digitalWrite(ENABLE_STROBE, HIGH);    // Enable display strobes by setting A9 high
+  currentDigit ++;                      // Update current digit variable
+//  PORTA = mScoreArray[currentDigit];    // Update current digit variable
+  digitalWrite(ENABLE_STROBE, HIGH);    // Enable display strobes by setting A9 high
   //for each of the five displays
   for (int i = 0; i < NUM_DISPLAYS; i++) {
     // set lower nibble of PORTA to binary value to display.
-    PORTA = _scoreArray[i][currentDigit];
+    PORTA = mScoreArray[i][currentDigit];
     // toggle the displays strobe line high then low
-    digitalWrite(ENABLE_STROBE, HIGH);
-    digitalWrite(ENABLE_STROBE, LOW);
+    // todo toggle strobe line
   }
-//  digitalWrite(ENABLE_STROBE, LOW);     // Disable the display strobe by setting A9 low
+  digitalWrite(ENABLE_STROBE, LOW);     // Disable the display strobe by setting A9 low
   // set the enable bit for the new digit high (use current digit here?)
-
+  // todo set enable bit
   // set the display blanking bit low (A15) this turns on all displays
   digitalWrite(BLANK_DISPLAY, LOW);
 }
 
-/*----------------------------------------------------*/
-
-//Note: if the score is greater than seven digits, we should
-//not return it. it will exceed the maximum digits of the display.
-
 /**
  * Parse score digits into uint8_t array.
- * @const DIGITS The number of digits
- * @param score The score to parse.
+ * @const DIGITS The number of digits.
+ * @param score The 32 bit score to parse.
+ *              Note that a 16 bit int can't hold decimal
+ *              value of zeven characters.
  * @return The byte array containing the parsed digits.
  * Note: This method statically allocates all memory.
  */
-byte* parseScore(unsigned int score){
+byte* parseScore(uint32_t score){
 
   byte digits[NUM_DIGITS];
 
@@ -123,25 +127,6 @@ byte* parseScore(unsigned int score){
   return digits;
 }
 
-/*----------------------------------------------------*/
-
-/**
- * Convert unsigned int to binary coded decimal.
- * @param val unsigned int decimal {val | 0 <= val <= 9}
- * @return unsigned int binary coded decimal
- */
-byte uIntToBCD(unsigned int val){
-
-  // check value
-  if(val < 0 || val > 9) {
-    return B0;
-  }
-
-  return byte(val);
-}
-
-/*----------------------------------------------------*/
-
 /**
  * Set display digit.
  * @param display The display to set the score on
@@ -151,8 +136,6 @@ byte uIntToBCD(unsigned int val){
 void setDisplay(byte display, byte digit, byte value){
   // todo set display
 }
-
-/*----------------------------------------------------*/
 
 /**
  * Interrupt service routine which is called to refresh displays.
