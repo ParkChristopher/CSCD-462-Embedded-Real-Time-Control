@@ -72,16 +72,23 @@ void setScore(unsigned int display, unsigned int score){
 void updateDisplays(){
   static unsigned int currentDigit = 0;
 
-  digitalWrite(BLANK_DISPLAY, HIGH);    //Blank all displays
-  digitalWrite(currentDigit, LOW);      //Disable previous digit
-  PORTA = _scoreArray[currentDigit];    //Update current digit variable
-  digitalWrite(ENABLE_STROBE, HIGH);    //Enable display strobes by setting A9 high
+  digitalWrite(BLANK_DISPLAY, HIGH);    // Blank all displays
+  digitalWrite(currentDigit, LOW);      // Disable previous digit
+  PORTA = _scoreArray[currentDigit];    // Update current digit variable
+//  digitalWrite(ENABLE_STROBE, HIGH);    // Enable display strobes by setting A9 high
   //for each of the five displays
-  //set lower nibble of porta to BCD value to display.
-  //toggle the displays strobe line hight then low
-  digitalWrite(ENABLE_STROBE, LOW);     //disable the display strobe by setting A9 low
-  //set the enable bit for the new digit high (use current digit here?)
-  //set the display blanking bit low (a15) this turns on all displays
+  for (int i = 0; i < NUM_DISPLAYS; i++) {
+    //set lower nibble of porta to BCD value to display.
+    PORTA = _scoreArray[i][currentDigit];
+    //toggle the displays strobe line high then low
+    digitalWrite(ENABLE_STROBE, HIGH);
+    digitalWrite(ENABLE_STROBE, LOW);
+  }
+//  digitalWrite(ENABLE_STROBE, LOW);     // Disable the display strobe by setting A9 low
+  // set the enable bit for the new digit high (use current digit here?)
+
+  // set the display blanking bit low (A15) this turns on all displays
+  digitalWrite(BLANK_DISPLAY, LOW);
 }
 
 /*----------------------------------------------------*/
