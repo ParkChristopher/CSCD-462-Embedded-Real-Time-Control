@@ -7,8 +7,8 @@
  * @url https://github.com/ParkChristopher/CSCD-462-Embedded-Real-Time-Control
  */
 
-#define NUM_DISPLAYS 5      // Number of digits in each display
-#define NUM_DIGITS 7        // Number of displays in the machine
+#define NUM_DISPLAYS 5      // Number of displays in the machine
+#define NUM_DIGITS 7        // Number of digits in each display
 
 // Output Pins
 #define STROBE_DISPLAY5 38
@@ -22,8 +22,8 @@
 #define ENABLE_DIGIT_6 52
 #define ENABLE_DIGIT_7 53
 
-uint8_t mScoreArray[NUM_DISPLAYS][NUM_DIGITS];    // Score array to hold the byte values for the digits in each display.
-uint32_t mCurrentScores[NUM_DISPLAYS];            // Value of current score. Must be 32 bits, due to decimal 7 length.
+volatile uint8_t mScoreArray[NUM_DISPLAYS][NUM_DIGITS];    // Score array to hold the byte values for the digits in each display.
+volatile uint32_t mCurrentScores[NUM_DISPLAYS];            // Value of current score. Must be 32 bits, due to decimal 7 length.
 
 void setup() {
 
@@ -38,7 +38,8 @@ void setup() {
   //ie. attachInterrupt(digitalPinToInterrupt(2), ISRFunction, RISING);
 
   // todo set timer interrupt to update every half second
-  // todo set display update on interrupt 2
+  // set display update on interrupt 2
+  attachInterrupt(digitalPinToInterrupt(2), refreshDisplaysInterrupt, RISING);
 }
 
 void loop() {}
@@ -144,7 +145,12 @@ void setDisplay(uint8_t display, uint8_t digit, uint8_t value){
  * Interrupt service routine which is called to refresh displays.
  */
 void refreshDisplaysInterrupt() {
-  // todo call setDisplay with all digits
+
+  for(uint8_t display = 0; display < NUM_DISPLAYS; display ++) {
+    for(uint8_t digit = 0; digit < NUM_DIGITS; digit ++) {
+      setDisplay(display, digit, mScoreArray[display][digit]);
+    }
+  }
 }
 
 /**
