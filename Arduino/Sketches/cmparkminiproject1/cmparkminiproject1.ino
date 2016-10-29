@@ -33,27 +33,15 @@ void setup() {
   Serial.begin(9600);
   Serial.print("Hello World!\n");
 
-  //Program flow:
-
   mCurrentDigit = 0;
-
   configureOutputPins();
-
-  //Digits should update as fast as interrupt 2 can fire,
-  //a timer should be used to update score data every 500ms.
-
-  //NOTE: When you set up the Interrupt the, use rising edge
-  //ie. attachInterrupt(digitalPinToInterrupt(2), ISRFunction, RISING);
-
-  // todo set timer interrupt to update every half second
-  // set display update on interrupt 2
   attachInterrupt(2, refreshDisplaysInterrupt, RISING);
 }
 
 void loop() {
 
   updateScoreInterrupt();
-  delay(1000);
+  delay(500);
 }
 
 /**
@@ -61,7 +49,7 @@ void loop() {
  * Note: This method must be called before any other methods.
  */
 void configureOutputPins(){
-  DDRA = B11111111;                   // PORTA
+  DDRA = B11111111;         // PORTA
   pinMode(BLANK_DISPLAY,    OUTPUT);
   pinMode(ENABLE_STROBE,    OUTPUT);
   pinMode(ENABLE_STROBE_5,  OUTPUT);
@@ -93,7 +81,7 @@ void setScore(uint8_t display, uint32_t score){
 
   // fill remainder with zeros if score length < 7 digits
   while(i < NUM_DIGITS) {
-    digits[NUM_DIGITS - i - 1] = 0;
+    mScoreArray[display][NUM_DIGITS - i - 1] = 0;
     i ++;
   }
 }
@@ -114,28 +102,29 @@ void setDisplay(uint8_t display, uint8_t digit, uint8_t value){
  */
 void updateDisplays(){
 
-  digitalWrite(BLANK_DISPLAY, HIGH);         // Blank all displays
-  digitalWrite(ENABLE_DIGITS[mCurrentDigit], LOW); // Disable previous digit
-  mCurrentDigit = mCurrentDigit >= NUM_DIGITS ? 0 : mCurrentDigit + 1; // Update current digit variable
+  digitalWrite(BLANK_DISPLAY, HIGH);                // Blank (Turn Off) all displays
+  digitalWrite(ENABLE_DIGITS[mCurrentDigit], LOW);  // Disable previous digit
+                                                    // Update current digit variable
+  mCurrentDigit = mCurrentDigit >= NUM_DIGITS ? 0 : mCurrentDigit + 1; 
 
-  digitalWrite(ENABLE_STROBE, HIGH);         // Enable display strobes by setting A9 high
+  digitalWrite(ENABLE_STROBE, HIGH);                // Enable display strobes by setting A9 high
   digitalWrite(ENABLE_STROBE_5, HIGH);
 
   for (int i = 0; i < NUM_DISPLAYS; i++) {
 
     uint8_t digitValue = mScoreArray[i][mCurrentDigit];
 
-    PORTA = (i << 4) & digitValue;  // set display in upper nibble, and digit value in lower nibble of PORTA
+    PORTA = (i << 4) | digitValue;                  // set display in upper nibble, and digit value in lower nibble of PORTA
 
-    digitalWrite(ENABLE_DIGITS[i], HIGH);    // toggle the displays strobe line high then low
+    digitalWrite(ENABLE_DIGITS[i], HIGH);           // toggle the displays strobe line high then low
     digitalWrite(ENABLE_DIGITS[i], LOW);
   }
 
-  digitalWrite(ENABLE_STROBE, LOW);          // Disable the display strobe by setting A9 low
+  digitalWrite(ENABLE_STROBE, LOW);                 // disable the display strobe by setting A9 low
   digitalWrite(ENABLE_STROBE_5, LOW);
 
   digitalWrite(ENABLE_DIGITS[mCurrentDigit], HIGH); // set the enable bit for the new digit high
-  digitalWrite(BLANK_DISPLAY, LOW);          // set the display blanking bit low (A15) this turns on all displays
+  digitalWrite(BLANK_DISPLAY, LOW);                 // set the display blanking bit low (A15) this turns on all displays
 }
 
 /**
