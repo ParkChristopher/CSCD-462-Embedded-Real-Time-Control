@@ -12,7 +12,6 @@
 
 // Output Pins
 #define ENABLE_STROBE A9
-#define ENABLE_STROBE_5 38
 #define BLANK_DISPLAY A15
 #define ENABLE_DIGIT_1 39   // Digit enables ordered LSB to MSB
 #define ENABLE_DIGIT_2 40
@@ -22,7 +21,23 @@
 #define ENABLE_DIGIT_6 52
 #define ENABLE_DIGIT_7 53
 
+// PORTA Score Values (Lower Nibble - Ordered LSB to MSB)
+#define PA_VALUE_1 22
+#define PA_VALUE_2 23
+#define PA_VALUE_3 24
+#define PA_VALUE_4 25
+
+// PORTA Display Strobes 1-4 (Upper Nibble - Ordered LSB to MSB)
+#define DISPLAY_STROBE_1 26
+#define DISPLAY_STROBE_2 27
+#define DISPLAY_STROBE_3 28
+#define DISPLAY_STROBE_4 29
+
+// Display 5 Strobe
+#define DISPLAY_STROBE_5 38
+
 const uint8_t ENABLE_DIGITS[NUM_DIGITS] = {ENABLE_DIGIT_1, ENABLE_DIGIT_2, ENABLE_DIGIT_3, ENABLE_DIGIT_4, ENABLE_DIGIT_5, ENABLE_DIGIT_6, ENABLE_DIGIT_7};
+const uint8_t DISPLAY_STROBES[NUM_DISPLAYS] = {DISPLAY_STROBE_1, DISPLAY_STROBE_2, DISPLAY_STROBE_3, DISPLAY_STROBE_4, DISPLAY_STROBE_5,};
 
 volatile uint8_t mScoreArray[NUM_DISPLAYS][NUM_DIGITS];    // Score array to hold the byte values for the digits in each display.
 volatile uint32_t mCurrentScores[NUM_DISPLAYS];            // Value of current score. Must be 32 bits, due to decimal 7 length.
@@ -31,11 +46,18 @@ uint8_t mCurrentDigit;                                     // Current digit upda
 void setup() {
 
   Serial.begin(9600);
-  Serial.print("Hello World!\n");
+  Serial.print("Running Setup\r\n");
 
   mCurrentDigit = 0;
+  
+  Serial.print("Configure Pins...");
   configureOutputPins();
+  Serial.print("Done!\r\n");
+
+  Serial.print("Attach Interrupt...");
   attachInterrupt(2, refreshDisplaysInterrupt, RISING);
+  Serial.print("Done!\r\n");
+  Serial.print("Setup Complete!\r\n");
 }
 
 void loop() {
@@ -49,10 +71,10 @@ void loop() {
  * Note: This method must be called before any other methods.
  */
 void configureOutputPins(){
-  DDRA = B11111111;         // PORTA
+  DDRA = B11111111;         // PORTA (Upper nibble, DISPLAY_STROBE 1-4)
+  pinMode(DISPLAY_STROBE_5,  OUTPUT);
   pinMode(BLANK_DISPLAY,    OUTPUT);
   pinMode(ENABLE_STROBE,    OUTPUT);
-  pinMode(ENABLE_STROBE_5,  OUTPUT);
   pinMode(ENABLE_DIGIT_1,   OUTPUT);
   pinMode(ENABLE_DIGIT_2,   OUTPUT);
   pinMode(ENABLE_DIGIT_3,   OUTPUT);
@@ -102,27 +124,26 @@ void setDisplay(uint8_t display, uint8_t digit, uint8_t value){
  */
 void updateDisplays(){
 
+  //Serial.print("Blank Bits\r\n");
   digitalWrite(BLANK_DISPLAY, HIGH);                // Blank (Turn Off) all displays
   digitalWrite(ENABLE_DIGITS[mCurrentDigit], LOW);  // Disable previous digit
                                                     // Update current digit variable
   mCurrentDigit = mCurrentDigit >= NUM_DIGITS ? 0 : mCurrentDigit + 1; 
 
   digitalWrite(ENABLE_STROBE, HIGH);                // Enable display strobes by setting A9 high
-  digitalWrite(ENABLE_STROBE_5, HIGH);
+  //digitalWrite(ENABLE_STROBE_5, HIGH);
 
   for (int i = 0; i < NUM_DISPLAYS; i++) {
 
     uint8_t digitValue = mScoreArray[i][mCurrentDigit];
 
-    PORTA = (i << 4) | digitValue;                  // set display in upper nibble, and digit value in lower nibble of PORTA
-
-    digitalWrite(ENABLE_DIGITS[i], HIGH);           // toggle the displays strobe line high then low
-    digitalWrite(ENABLE_DIGITS[i], LOW);
+    //PORTA = (i << 4) | digitValue;                  // set display in upper nibble, and digit value in lower nibble of PORTA
+    PORTA = digitValue;
+    digitalWrite(DISPLAY_STROBES[i], HIGH);           // toggle the displays strobe line high then low
+    digitalWrite(DISPLAY_STROBES[i], LOW);
   }
-
+  
   digitalWrite(ENABLE_STROBE, LOW);                 // disable the display strobe by setting A9 low
-  digitalWrite(ENABLE_STROBE_5, LOW);
-
   digitalWrite(ENABLE_DIGITS[mCurrentDigit], HIGH); // set the enable bit for the new digit high
   digitalWrite(BLANK_DISPLAY, LOW);                 // set the display blanking bit low (A15) this turns on all displays
 }
@@ -138,15 +159,7 @@ void refreshDisplaysInterrupt() {
  * Interrupt service routine which is called to increment the scores.
  */
 void updateScoreInterrupt() {
-
-  bool done = false;
-  for (uint8_t i = 0; i < NUM_DISPLAYS && !done; i++) {
-
-    mCurrentScores[i] ++;
-    setScore(i, mCurrentScores[i]);
-
-    if(mCurrentScores[i] > 8353) {
-      done = true;
-    }
-  }
+  //cycleScoreA();
+  //cycleScoreB();
+  staticScoreTest();
 }
