@@ -96,14 +96,16 @@ void setScore(uint8_t display, uint32_t score){
 
   int i = 0;
   while(score > 0 && i < NUM_DIGITS) {
-    mScoreArray[display][NUM_DIGITS - i - 1] = score % 10;
+    //mScoreArray[display][NUM_DIGITS - i - 1] = score % 10;
+    mScoreArray[display][i] = score % 10;
     score = score / 10;
     i ++;
   }
 
   // fill remainder with zeros if score length < 7 digits
   while(i < NUM_DIGITS) {
-    mScoreArray[display][NUM_DIGITS - i - 1] = 0;
+    //mScoreArray[display][NUM_DIGITS - i - 1] = 0;
+    mScoreArray[display][i] = 0;
     i ++;
   }
 }
@@ -159,7 +161,7 @@ void refreshDisplaysInterrupt() {
  * Interrupt service routine which is called to increment the scores.
  */
 void updateScoreInterrupt() {
-  //cycleScoreA();
+  cycleScoreA();
   //cycleScoreB();
-  staticScoreTest();
+  //staticScoreTest();
 }
