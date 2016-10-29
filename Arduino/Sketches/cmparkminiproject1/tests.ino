@@ -1,7 +1,7 @@
 /**
  * Score Interrupt Tests
  */
-#define POINT_VALUE = 8353
+#define POINT_VALUE 8353
 
 
 /**
@@ -11,7 +11,7 @@
   
   static uint8_t displayNum = 0;
   
-  mCurrentScore[displayNum] += POINT_VALUE;
+  mCurrentScores[displayNum] += POINT_VALUE;
   setScore(displayNum, mCurrentScores[displayNum]);
   displayNum = displayNum < NUM_DISPLAYS ? displayNum++ : 0;
  }
