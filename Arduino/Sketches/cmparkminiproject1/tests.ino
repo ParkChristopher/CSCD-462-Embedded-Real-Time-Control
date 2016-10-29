@@ -25,11 +25,20 @@ void cycleScoreA(){
  */
 void cycleScoreB() {
   
-  static uint8_t displayNum = 0;
+  static uint8_t offset = 0;
   
-  mCurrentScores[displayNum] += POINT_VALUE;
-  setScore(displayNum, mCurrentScores[displayNum]);
-  displayNum = displayNum < NUM_DISPLAYS ? displayNum++ : 0;
+  if(offset < NUM_DISPLAYS){
+    mCurrentScores[offset] = POINT_VALUE;
+    offset++;
+  }
+  
+  for(uint8_t i = 0; i < NUM_DISPLAYS; i++){
+    if(mCurrentScores[i]!= 0){
+      mCurrentScores[i] += POINT_VALUE;
+    }
+
+    setScore(i, mCurrentScores[i]);
+  }
 }
 
 /**

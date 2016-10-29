@@ -54,6 +54,10 @@ void setup() {
   configureOutputPins();
   Serial.print("Done!\r\n");
 
+  Serial.print("Initializing Scores...");
+  initScores();
+  Serial.print("Done!\r\n");
+  
   Serial.print("Attach Interrupt...");
   attachInterrupt(2, refreshDisplaysInterrupt, RISING);
   Serial.print("Done!\r\n");
@@ -82,6 +86,15 @@ void configureOutputPins(){
   pinMode(ENABLE_DIGIT_5,   OUTPUT);
   pinMode(ENABLE_DIGIT_6,   OUTPUT);
   pinMode(ENABLE_DIGIT_7,   OUTPUT);
+}
+
+/**
+ * Initialize score values
+ */
+void initScores(){
+  for(uint8_t i = 0; i < NUM_DISPLAYS; i++){
+    mCurrentScores[i] = 0;
+  }
 }
 
 /**
@@ -161,7 +174,7 @@ void refreshDisplaysInterrupt() {
  * Interrupt service routine which is called to increment the scores.
  */
 void updateScoreInterrupt() {
-  cycleScoreA();
-  //cycleScoreB();
+  //cycleScoreA();
+  cycleScoreB();
   //staticScoreTest();
 }
