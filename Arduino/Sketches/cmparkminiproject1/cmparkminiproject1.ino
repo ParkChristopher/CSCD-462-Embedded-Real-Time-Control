@@ -9,6 +9,7 @@
 
 #define NUM_DISPLAYS 5      // Number of displays in the machine
 #define NUM_DIGITS 7        // Number of digits in each display
+#define DELAY_TIME_MSEC 500
 
 // Output Pins
 #define ENABLE_STROBE A9
@@ -67,7 +68,7 @@ void setup() {
 void loop() {
 
   updateScoreInterrupt();
-  delay(500);
+  delay(DELAY_TIME_MSEC);
 }
 
 /**
@@ -76,7 +77,7 @@ void loop() {
  */
 void configureOutputPins(){
   DDRA = B11111111;         // PORTA (Upper nibble, DISPLAY_STROBE 1-4)
-  pinMode(DISPLAY_STROBE_5,  OUTPUT);
+  pinMode(DISPLAY_STROBE_5, OUTPUT);
   pinMode(BLANK_DISPLAY,    OUTPUT);
   pinMode(ENABLE_STROBE,    OUTPUT);
   pinMode(ENABLE_DIGIT_1,   OUTPUT);
@@ -94,6 +95,7 @@ void configureOutputPins(){
 void initScores(){
   for(uint8_t i = 0; i < NUM_DISPLAYS; i++){
     mCurrentScores[i] = 0;
+    setScore(i, mCurrentScores[i]);
   }
 }
 
@@ -109,7 +111,6 @@ void setScore(uint8_t display, uint32_t score){
 
   int i = 0;
   while(score > 0 && i < NUM_DIGITS) {
-    //mScoreArray[display][NUM_DIGITS - i - 1] = score % 10;
     mScoreArray[display][i] = score % 10;
     score = score / 10;
     i ++;
@@ -117,20 +118,9 @@ void setScore(uint8_t display, uint32_t score){
 
   // fill remainder with zeros if score length < 7 digits
   while(i < NUM_DIGITS) {
-    //mScoreArray[display][NUM_DIGITS - i - 1] = 0;
     mScoreArray[display][i] = 0;
     i ++;
   }
-}
-
-/**
- * Set display digit.
- * @param display The display to set the score on
- * @param digit The digit of that display to set
- * @param value The value to set the digit to
- */
-void setDisplay(uint8_t display, uint8_t digit, uint8_t value){
-  // todo set display
 }
 
 /**
@@ -146,14 +136,12 @@ void updateDisplays(){
   mCurrentDigit = mCurrentDigit >= NUM_DIGITS ? 0 : mCurrentDigit + 1; 
 
   digitalWrite(ENABLE_STROBE, HIGH);                // Enable display strobes by setting A9 high
-  //digitalWrite(ENABLE_STROBE_5, HIGH);
 
   for (int i = 0; i < NUM_DISPLAYS; i++) {
 
     uint8_t digitValue = mScoreArray[i][mCurrentDigit];
-
-    //PORTA = (i << 4) | digitValue;                  // set display in upper nibble, and digit value in lower nibble of PORTA
-    PORTA = digitValue;
+    
+    PORTA = digitValue;                               // Set digit value in lower nibble of PORTA.
     digitalWrite(DISPLAY_STROBES[i], HIGH);           // toggle the displays strobe line high then low
     digitalWrite(DISPLAY_STROBES[i], LOW);
   }
@@ -174,7 +162,7 @@ void refreshDisplaysInterrupt() {
  * Interrupt service routine which is called to increment the scores.
  */
 void updateScoreInterrupt() {
+  //staticScoreTest();
   //cycleScoreA();
   cycleScoreB();
-  //staticScoreTest();
 }
