@@ -29,15 +29,14 @@ void consumer(){
   
   static uint8_t count = 0;
   
-  do{
+  while(true){
 
-    Serial.println("Waiting");
     ARTK_WaitSema(sem);
-    Printf(F("Button press %d detected.\r\n"), count);
+    Printf(F("Button press %d detected.\r\n"), (count + 1));
     count++;
 
-    if(count == 4) ARTK_TerminateMultitasking();
-  }while(true);
+    if(count == 5) ARTK_TerminateMultitasking();
+  }
 }
 
 void switch_monitor(){
@@ -45,29 +44,25 @@ void switch_monitor(){
   static uint8_t previous = 1;
   uint8_t current = 1;
   
-  do{
+  while(true){
   
     current = digitalRead(INPUT_PIN);
     
-    if(previous == 1 && current == 0)
-      {
-        Printf(F("We did it reddit!\r\n"));
-        ARTK_SignalSema(sem);
-      }
+    if(previous == 1 && current == 0) ARTK_SignalSema(sem);
     
-    delay(20);
+    ARTK_Sleep(20);
     previous = current;
-  }while(true);
+  }
 }
 
 void busy(){
-  
+ 
   static int count = 0;
   
-  do{
+  while(true){
    
     count++;
     Printf(F("count is :%d\r\n"), count); 
     ARTK_Sleep(1000);
-  }while(true);
+  }
 }
