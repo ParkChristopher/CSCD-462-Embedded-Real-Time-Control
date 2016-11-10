@@ -1,5 +1,5 @@
 //Chris Park
-//Lab 4
+//Lab 4 A
 
 #include <ARTK.h>
 #include <inline.h>
@@ -25,6 +25,9 @@ void Setup() {
   ARTK_CreateTask(busy, 1);
 }
 
+/**
+ * Medium Priority Task
+ */
 void consumer(){
   
   static uint8_t count = 0;
@@ -39,6 +42,9 @@ void consumer(){
   }
 }
 
+/**
+ * High Priority Task
+ */
 void switch_monitor(){
 
   static uint8_t previous = 1;
@@ -55,6 +61,9 @@ void switch_monitor(){
   }
 }
 
+/**
+ * Low Priority Task
+ */
 void busy(){
  
   static int count = 0;
