@@ -1,0 +1,25 @@
+Pinball Debugging/Missing features. (What's left to do)
+
+11/30/16
+-The right pop bumber isn't triggered by the B side lanes, the switch fires but no points are ever scored.
+-The top AB roll over switches are sticky, and tend to activate multiple times, especially when the ball is moving slowly. (Ask Paul if okay as is, or can be improved)
+-Saucer hole seems to be acting up. (Let Paul know, and ask if current solution is acceptable)
+-Neither of the kickers in the slingshots behind the drop targets are active. Need to find out where they are in the switch matrix and get them up and running.
+
+
+Remaining Logic:
+-Deactivate displays of non active players
+-Need to read credits and coins manually after the first, and read for switches on each pass through the loop, so that players can be something other than 4. Do this by manually checking for rising edge on the cabinet switches. Nest that in an if or something similar that  checks for other switches.
+
+
+Psuedo code:
+//read playfield switches
+//if(a playfield switch has not been activated)
+	//Check for Rising Edge on Cabinet switches
+		//if a credit or coin less than 4th player activated
+			//do the normal credit/player behavior
+//else
+	//we are done and the game is starting (done = true)
+	//deactivate displays for non active players
+	//handle all normal resets and initializations
+	//start the game loop.
