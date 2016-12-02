@@ -5,6 +5,7 @@
 #define V_OUT A0
 #define CS 8
 #define PERIOD 800
+#define PERIOD_SEC .0008
 #define KP 30
 #define KI 7.2
 #define KD 2500
@@ -124,7 +125,9 @@ float pid_compute_next(float err, int period, float kp, float ki, float kd){
   cum_err += err;
   err_offset = err - prev_err;
   next_val = (kp * err) + (ki * cum_err) + (kd * err_offset);
-
+  
+  //add PERIOD_SEC to calculations
+  
   //Convert and constrain
   next_val = next_val * 1000;
   if(next_val > 4095) next_val = 4095;
