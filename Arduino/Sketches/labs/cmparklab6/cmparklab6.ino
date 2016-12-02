@@ -1,3 +1,6 @@
+//Chris Park
+//Lab 6
+
 #include <TimerOne.h>
 #include <SPI.h>
 
@@ -6,9 +9,9 @@
 #define CS 8
 #define PERIOD 800
 #define PERIOD_SEC .0008
-#define KP 30
-#define KI 7.2
-#define KD 2500
+#define KP 4.5
+#define KI 270
+#define KD 0.01
 unsigned int _rlc_data[125];
 unsigned volatile int _rlc_index;
 
@@ -101,7 +104,7 @@ void sample_rlc_closed(){
   
   val_conv = (val * (5.0 / 1023.0));
   err = (3 - val_conv);
-  next_val = pid_compute_next(err, PERIOD, KP, KI, KD);
+  next_val = pid_compute_next(err, PERIOD_SEC, KP, KI, KD);
   dac_write(next_val);
   _rlc_index++;
 }
@@ -122,11 +125,9 @@ float pid_compute_next(float err, int period, float kp, float ki, float kd){
     return 0.0;
   }
 
-  cum_err += err;
-  err_offset = err - prev_err;
+  cum_err += (err * PERIOD_SEC);
+  err_offset = (err - prev_err) / PERIOD_SEC;
   next_val = (kp * err) + (ki * cum_err) + (kd * err_offset);
-  
-  //add PERIOD_SEC to calculations
   
   //Convert and constrain
   next_val = next_val * 1000;
